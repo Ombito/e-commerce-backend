@@ -19,7 +19,7 @@ Session(app)
 
 class Index(Resource):
     def get(self):
-        response_body = '<h1>Hello World</h1>'
+        response_body = '<h1>Hello to E-commerce server</h1>'
         status = 200
         headers = {}
         return make_response(response_body,status,headers)
