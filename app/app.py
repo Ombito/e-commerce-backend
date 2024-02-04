@@ -1,4 +1,4 @@
-from models import User, db
+from models import db
 from flask_cors import CORS
 from flask import Flask, jsonify, request, session, make_response
 from flask_restful import Api, Resource
