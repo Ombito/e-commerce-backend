@@ -9,7 +9,7 @@ from datetime import timedelta
 from flask_session import Session
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///ecommerce.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///mydb.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JSONIFY_PRETTYPRINT_REGULAR']= True
 
@@ -25,10 +25,55 @@ class Index(Resource):
         headers = {}
         return make_response(response_body,status,headers)
     
+class Users(Resource):
+
+    def get(self):
+
+        response_dict_list = [n.to_dict() for n in User.query.all()]
+
+        response = make_response(
+            jsonify(response_dict_list),
+            200,
+        )
+
+        return response
+
+    def post(self):
+
+        new_record = User(
+            user_id=request.form['user_id'],
+            product_id=request.form['product_id'],
+        )
+
+        db.session.add(new_record)
+        db.session.commit()
+
+        response_dict = new_record.to_dict()
+
+        response = make_response(
+            jsonify(response_dict),
+            201,
+        )
+
+        return response
+    
+class UsersByID(Resource):
+
+    def get(self, id):
+
+        response_dict = User.query.filter_by(id=id).first().to_dict()
+
+        response = make_response(
+            jsonify(response_dict),
+            200,
+        )
+
+        return response
+    
 
 class Products(Resource):
 
-    def get(self, id):
+    def get(self):
 
         response_dict_list = [n.to_dict() for n in Product.query.all()]
 
@@ -253,6 +298,8 @@ class FavouritesByUser(Resource):
 
 
 api.add_resource(Index,'/', endpoint='landing')
+api.add_resource(Users, '/users')
+api.add_resource(UsersByID, '/users/<int:id>')
 api.add_resource(Products, '/products')
 api.add_resource(ProductByID, '/products/<int:id>')
 api.add_resource(Orders, '/orders')

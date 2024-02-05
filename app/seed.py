@@ -129,3 +129,4 @@ with app.app_context():
     db.session.add(favourite1)
     db.session.add(favourite2)
     db.session.commit()
+    print("Database seeded successfully")

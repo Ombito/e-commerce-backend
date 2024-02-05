@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from sqlalchemy.ext.hybrid import hybrid_property
 import datetime
-
+from sqlalchemy.orm import relationship
 
 db = SQLAlchemy()
 bcrypt = Bcrypt()
@@ -31,6 +31,9 @@ class User(db.Model, SerializerMixin):
     def authenticate(self, password):
         return bcrypt.check_password_hash(self._password_hash, password.encode("utf-8"))
     
+    orders = relationship('Order', backref='user', lazy=True)
+    favourites = relationship('Favourite', backref='user', lazy=True)
+
     serialize_rules = ('-password_hash', '-orders.user', '-favourites.user')
                               
 
@@ -39,14 +42,17 @@ class Product(db.Model, SerializerMixin):
     __tablename__ = 'products'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100))
+    name = db.Column(db.String())
     imageURL = db.Column(db.String())
     description = db.Column(db.String())
     price = db.Column(db.Integer)
     category = db.Column(db.String())
     rating = db.Column(db.Integer)
 
-    serialize_rules = ('-reviews.product', '-orders.product')
+    reviews = relationship('Review', backref='reviewed_product', lazy=True)
+    orders = relationship('OrderItem', backref='product', lazy=True)
+    
+    serialize_rules = ('-reviews.reviewed_product', '-orders.product')
 
 
 class Order(db.Model, SerializerMixin):
@@ -59,6 +65,8 @@ class Order(db.Model, SerializerMixin):
     total_amount = db.Column(db.Integer)
     status = db.Column(db.String(100), nullable=False)
     shipping_fees = db.Column(db.Integer)
+
+    order_items = relationship('OrderItem', backref='order', lazy=True)
 
     serialize_rules = ('-order_items.order',)
 
@@ -79,9 +87,9 @@ class Review(db.Model, SerializerMixin):
     __tablename__ = 'reviews'
 
     id = db.Column(db.Integer, primary_key=True)
-    content = db.Column(db.String(100))
+    content = db.Column(db.String())
     rating = db.Column(db.Integer)
-    product = db.Column(db.Integer)
+    product = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
     user = db.Column(db.String(150))
 
     serialize_rules = ('-product.reviews', '-user.favourites', '-user.orders')
@@ -91,7 +99,8 @@ class Favourite(db.Model, SerializerMixin):
     __tablename__ = 'favourites'
 
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer)
-    product_id = db.Column(db.Integer)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
+
 
     serialize_rules = ('-user.orders', '-product.reviews')
