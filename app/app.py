@@ -261,7 +261,7 @@ api.add_resource(OrderItems, '/orderItems')
 api.add_resource(OrderItemsByID, '/orderItems/<int:id>')
 api.add_resource(Reviews, '/reviews')
 api.add_resource(ReviewsByUser, '/reviews/<int:id>')
-api.add_resource(Favourite, '/favourites')
+api.add_resource(Favourites, '/favourites')
 api.add_resource(FavouritesByUser, '/favourites/<int:id>')
 
 
