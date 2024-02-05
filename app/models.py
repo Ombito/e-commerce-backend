@@ -2,6 +2,8 @@ from sqlalchemy_serializer import SerializerMixin
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from sqlalchemy.ext.hybrid import hybrid_property
+import datetime
+
 
 db = SQLAlchemy()
 bcrypt = Bcrypt()
@@ -15,6 +17,7 @@ class User(db.Model, SerializerMixin):
     phone_number = db.Column(db.Integer)
     address = db.Column(db.String(150))
     _password_hash = db.Column(db.String(100), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
 
     @hybrid_property
@@ -27,3 +30,68 @@ class User(db.Model, SerializerMixin):
 
     def authenticate(self, password):
         return bcrypt.check_password_hash(self._password_hash, password.encode("utf-8"))
+    
+    serialize_rules = ('-password_hash', '-orders.user', '-favourites.user')
+                              
+
+
+class Product(db.Model, SerializerMixin):
+    __tablename__ = 'products'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100))
+    imageURL = db.Column(db.String())
+    description = db.Column(db.String())
+    price = db.Column(db.Integer)
+    category = db.Column(db.String())
+    rating = db.Column(db.Integer)
+
+    serialize_rules = ('-reviews.product', '-orders.product')
+
+
+class Order(db.Model, SerializerMixin):
+    __tablename__ = 'orders'
+
+    id = db.Column(db.Integer, primary_key=True)
+    address = db.Column(db.String())
+    order_date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    total_amount = db.Column(db.Integer)
+    status = db.Column(db.String(100), nullable=False)
+    shipping_fees = db.Column(db.Integer)
+
+    serialize_rules = ('-order_items.order',)
+
+
+class OrderItem(db.Model, SerializerMixin):
+    __tablename__ = 'order_items'
+
+    id = db.Column(db.Integer, primary_key=True)
+    order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
+    quantity = db.Column(db.Integer)
+    subTotal_amount = db.Column(db.Integer)
+
+    serialize_rules = ('-order.product', '-product.orders')
+
+
+class Review(db.Model, SerializerMixin):
+    __tablename__ = 'reviews'
+
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.String(100))
+    rating = db.Column(db.Integer)
+    product = db.Column(db.Integer)
+    user = db.Column(db.String(150))
+
+    serialize_rules = ('-product.reviews', '-user.favourites', '-user.orders')
+
+
+class Favourite(db.Model, SerializerMixin):
+    __tablename__ = 'favourites'
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer)
+    product_id = db.Column(db.Integer)
+
+    serialize_rules = ('-user.orders', '-product.reviews')
