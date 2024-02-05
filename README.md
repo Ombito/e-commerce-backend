@@ -47,7 +47,7 @@ This is the backend implementation for an eCommerce application. It provides the
     cd app
     python3 app.py
 
-![Relational Diagram](./dbdiagram.jpg)
+![Relational Diagram](./dbdiagram.png)
 
 ## API Endpoints
 Refer to [API.md](./API.md) for detailed documentation on available endpoints and request/response examples.
