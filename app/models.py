@@ -4,6 +4,8 @@ from flask_bcrypt import Bcrypt
 from sqlalchemy.ext.hybrid import hybrid_property
 import datetime
 from sqlalchemy.orm import relationship
+from sqlalchemy import UniqueConstraint
+
 
 db = SQLAlchemy()
 bcrypt = Bcrypt()
@@ -35,9 +37,7 @@ class User(db.Model, SerializerMixin):
     favourites = relationship('Favourite', backref='user', lazy=True)
 
     serialize_rules = ('-password_hash', '-orders.user', '-favourites.user')
-
-    
-                              
+                            
 
 
 class Product(db.Model, SerializerMixin):
@@ -105,5 +105,8 @@ class Favourite(db.Model, SerializerMixin):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
 
+    __table_args__ = (
+        UniqueConstraint('user_id', 'product_id'),
+    )
 
     serialize_rules = ('-user.orders', '-product.reviews')

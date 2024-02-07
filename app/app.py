@@ -6,9 +6,11 @@ from models import User, db, Product, Order, OrderItem, Review, Favourite, bcryp
 from flask_migrate import Migrate
 from werkzeug.exceptions import NotFound
 import secrets
-
+from sqlalchemy import and_
 from datetime import timedelta
 from flask_session import Session
+from sqlalchemy.exc import IntegrityError
+
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}}, support_credentials=True)
@@ -35,7 +37,53 @@ class Index(Resource):
         status = 200
         headers = {}
         return make_response(response_body,status,headers)
+
+
+class LoginUser(Resource):
+    def post(self):
+        email  = request.get_json().get('email')
+        password = request.get_json().get("password")
+
+        user = User.query.filter(User.email == email).first()
+
+        if user:
+            if user.authenticate(password):
+                session['user_id']=user.id
+                return make_response(jsonify(user.to_dict()), 200)
+                
+            else:
+                return make_response(jsonify({"error": "Username or password is incorrect"}), 401)
+        else:
+            return make_response(jsonify({"error": "User not Registered"}), 404)
+
+
+class SignupUser(Resource):
+    def post(self):
+        try:
+            data = request.get_json()
+
+            full_name = data.get('full_name')
+            email = data.get('email')
+            phone_number = data.get('phone_number')
+            password = data.get('password')
+
+            if full_name and phone_number and email and password:
+                new_user = User(full_name=full_name, phone_number=phone_number, email=email)
+                new_user.password_hash = password
+                db.session.add(new_user)
+                db.session.commit()
+
+                session['user_id']=new_user.id
+                session['user_type'] = 'user'
+
+                return make_response(jsonify(new_user.to_dict()),201)
+            
+            return make_response(jsonify({"error": "user details must be added"}),422)
     
+        except Exception as e:
+            return make_response(jsonify({"error": str(e)}), 500)
+
+
 class Users(Resource):
 
     def get(self):
@@ -63,49 +111,31 @@ class UsersByID(Resource):
 
         return response
     
-class LoginUser(Resource):
-    def post(self):
-        email  = request.get_json().get('email')
-        password = request.get_json().get("password")
-
-        user = User.query.filter(User.email == email).first()
+class UserFavourite(Resource):
+    def get(self, user_id):
+        user = User.query.get(user_id)
 
         if user:
-            if user.authenticate(password):
-                session['user_id']=user.id
-                return make_response(jsonify(user.to_dict()), 200)
-                
-            else:
-                return make_response(jsonify({"error": "Username or password is incorrect"}), 401)
+            favourite_products = Product.query.join(Favourite).filter(Favourite.user_id == user_id).all()
+            serialized_favourites = [product.to_dict() for product in favourite_products]
+            return serialized_favourites
         else:
-            return make_response(jsonify({"error": "User not Registered"}), 404)
+            return jsonify({'message': 'User not found'}), 404
         
+    def post(self, user_id, product_id):
+        user = User.query.get(user_id)
+        product = Product.query.get(product_id)
 
-class SignupUser(Resource):
-    def post(self):
-        try:
-            data = request.get_json()
-
-            full_name = data.get('full_name')
-            email = data.get('email')
-            phone_number = data.get('phone_number')
-            password = data.get('password')
-
-            if full_name and phone_number and email and password:
-                new_user = User(full_name=full_name, phone_number=phone_number, email=email)
-                new_user.password_hash = password
-                db.session.add(new_user)
+        if user and product:
+            try:
+                favourite = Favourite(user_id=user_id, product_id=product_id)
+                db.session.add(favourite)
                 db.session.commit()
-
-                session['user_id']=new_user.id
-                session['user_type'] = 'user'
-
-                return make_response(jsonify(new_user.to_dict()),201)
-            
-            return make_response(jsonify({"error": "user details must be added"}),422)
-    
-        except Exception as e:
-            return make_response(jsonify({"error": str(e)}), 500)
+                return jsonify({'message': 'Product favorited successfully'}), 201
+            except IntegrityError:
+                return jsonify({'message': 'Product already favorited by the user'}), 400
+        else:
+            return jsonify({'message': 'User or product not found'}), 404
 
 
 class Products(Resource):
@@ -347,10 +377,11 @@ class FavouritesByID(Resource):
 
 
 api.add_resource(Index,'/', endpoint='landing')
-api.add_resource(Users, '/users')
-api.add_resource(UsersByID, '/users/<int:id>')
 api.add_resource(LoginUser, '/login_user')
 api.add_resource(SignupUser, '/signup_user')
+api.add_resource(Users, '/users')
+api.add_resource(UsersByID, '/users/<int:id>')
+api.add_resource(UserFavourite, '/users/<int:user_id>/favourites')
 api.add_resource(Products, '/products')
 api.add_resource(ProductByID, '/products/<int:id>')
 api.add_resource(Orders, '/orders')
