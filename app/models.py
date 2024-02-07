@@ -14,7 +14,7 @@ class User(db.Model, SerializerMixin):
     id = db.Column(db.Integer, primary_key=True)
     full_name = db.Column(db.String(100))
     email = db.Column(db.String(100), unique=True)
-    phone_number = db.Column(db.Integer)
+    phone_number = db.Column(db.String(150))
     address = db.Column(db.String(150))
     _password_hash = db.Column(db.String(100), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
@@ -45,7 +45,7 @@ class Product(db.Model, SerializerMixin):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String())
-    imageURL = db.Column(db.String())
+    image_url = db.Column(db.String())
     description = db.Column(db.String())
     price = db.Column(db.Integer)
     category = db.Column(db.String(), nullable=False)
@@ -81,7 +81,7 @@ class OrderItem(db.Model, SerializerMixin):
     order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=False)
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
     quantity = db.Column(db.Integer)
-    subTotal_amount = db.Column(db.Integer)
+    subtotal_amount = db.Column(db.Integer)
 
     serialize_rules = ('-order.product', '-product.orders')
 
@@ -93,7 +93,7 @@ class Review(db.Model, SerializerMixin):
     content = db.Column(db.String())
     rating = db.Column(db.Integer)
     product = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
-    user = db.Column(db.String(150))
+    user = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
 
     serialize_rules = ('-product.reviews', '-user.favourites', '-user.orders')
 

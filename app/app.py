@@ -127,14 +127,14 @@ class Products(Resource):
         category = data.get('category')
         description = data.get('description')
         grouping = data.get('grouping')
-        imageURL = data.get('imageURL')
+        image_url = data.get('image_url')
         price = data.get('price')
         rating = data.get('rating')
 
-        if name and category and description and imageURL and price and rating:
+        if name and category and description and image_url and price and rating:
             new_product = Product(
                 name=name,
-                imageURL=imageURL,
+                image_url=image_url,
                 description=description,
                 price=price,
                 category=category,
@@ -197,7 +197,7 @@ class Orders(Resource):
                 new_order_item = OrderItem(
                     product_id=item.get('product_id'),
                     quantity=item.get('quantity'),
-                    subTotal_amount=item.get('subTotal_amount')
+                    subtotal_amount=item.get('subtotal_amount')
                 )
                 new_order.order_items.append(new_order_item)
 
@@ -263,25 +263,29 @@ class Reviews(Resource):
         return response
 
     def post(self):
+        user_id = session.get('user_id')
+        data = request.get_json()
 
-        new_record = Review(
-            content=request.form['content'],
-            rating=request.form['rating'],
-        )
+        content = data.get('content')
+        rating = data.get('rating')
+        product = data.get('product')
 
-        db.session.add(new_record)
-        db.session.commit()
+        if content and rating and product:
+            new_review = Review(
+                content=content,
+                rating=rating,
+                product=product,
+                user=user_id
+            )
 
-        response_dict = new_record.to_dict()
+            db.session.add(new_review)
+            db.session.commit()
 
-        response = make_response(
-            jsonify(response_dict),
-            201,
-        )
+            return make_response(jsonify(new_review.to_dict()),201)
+        else:
+            return jsonify({"error": "Incomplete reviewdetails"}), 422
 
-        return response
-
-class ReviewsByUser(Resource):
+class ReviewsByID(Resource):
 
     def get(self, id):
 
@@ -309,26 +313,26 @@ class Favourites(Resource):
         return response
 
     def post(self):
+        user_id = session.get('user_id')
+        data = request.get_json()
 
-        new_record = Favourite(
-            user_id=request.form['user_id'],
-            product_id=request.form['product_id'],
-        )
+        product_id = data.get('product_id')
 
-        db.session.add(new_record)
-        db.session.commit()
+        if product_id:
+            new_favourite = Favourite(
+                product_id=product_id,
+                user_id=user_id
+            )
 
-        response_dict = new_record.to_dict()
+            db.session.add(new_favourite)
+            db.session.commit()
 
-        response = make_response(
-            jsonify(response_dict),
-            201,
-        )
-
-        return response
+            return make_response(jsonify(new_favourite.to_dict()),201)
+        else:
+            return jsonify({"error": "Incomplete favourite product"}), 422
     
     
-class FavouritesByUser(Resource):
+class FavouritesByID(Resource):
 
     def get(self, id):
 
@@ -354,9 +358,9 @@ api.add_resource(OrderByID, '/orders/<int:id>')
 api.add_resource(OrderItems, '/order_items')
 api.add_resource(OrderItemsByID, '/order_items/<int:id>')
 api.add_resource(Reviews, '/reviews')
-api.add_resource(ReviewsByUser, '/reviews/<int:id>')
+api.add_resource(ReviewsByID, '/reviews/<int:id>')
 api.add_resource(Favourites, '/favourites')
-api.add_resource(FavouritesByUser, '/favourites/<int:id>')
+api.add_resource(FavouritesByID, '/favourites/<int:id>')
 
 
 
