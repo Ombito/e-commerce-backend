@@ -35,6 +35,8 @@ class User(db.Model, SerializerMixin):
     favourites = relationship('Favourite', backref='user', lazy=True)
 
     serialize_rules = ('-password_hash', '-orders.user', '-favourites.user')
+
+    
                               
 
 

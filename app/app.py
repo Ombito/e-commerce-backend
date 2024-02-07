@@ -332,7 +332,7 @@ class FavouritesByUser(Resource):
 
     def get(self, id):
 
-        response_dict = OrderItem.query.filter_by(id=id).first().to_dict()
+        response_dict = Favourite.query.filter_by(id=id).first().to_dict()
 
         response = make_response(
             jsonify(response_dict),
