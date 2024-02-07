@@ -4,14 +4,25 @@ from flask import Flask, jsonify, request, session, make_response
 from flask_restful import Api, Resource
 from models import User, db, Product, Order, OrderItem, Review, Favourite, bcrypt
 from flask_migrate import Migrate
+from werkzeug.exceptions import NotFound
+import secrets
 
 from datetime import timedelta
 from flask_session import Session
 
 app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": "*"}}, support_credentials=True)
+
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///mydb.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JSONIFY_PRETTYPRINT_REGULAR']= True
+app.secret_key = secrets.token_hex(16)
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=7)
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_FILE_DIR'] = 'session_dir'
+
+
 
 db.init_app(app)
 api = Api(app)
@@ -34,25 +45,6 @@ class Users(Resource):
         response = make_response(
             jsonify(response_dict_list),
             200,
-        )
-
-        return response
-
-    def post(self):
-
-        new_record = User(
-            user_id=request.form['user_id'],
-            product_id=request.form['product_id'],
-        )
-
-        db.session.add(new_record)
-        db.session.commit()
-
-        response_dict = new_record.to_dict()
-
-        response = make_response(
-            jsonify(response_dict),
-            201,
         )
 
         return response
@@ -129,22 +121,34 @@ class Products(Resource):
         return response
 
     def post(self):
-        new_record = Product(
-            title=request.form['title'],
-            body=request.form['body'],
-        )
+        data = request.get_json()
 
-        db.session.add(new_record)
-        db.session.commit()
+        name = data.get('name')
+        category = data.get('category')
+        description = data.get('description')
+        grouping = data.get('grouping')
+        imageURL = data.get('imageURL')
+        price = data.get('price')
+        rating = data.get('rating')
 
-        response_dict = new_record.to_dict()
+        if name and category and description and imageURL and price and rating:
+            new_product = Product(
+                name=name,
+                imageURL=imageURL,
+                description=description,
+                price=price,
+                category=category,
+                rating=rating,
+                grouping=grouping,          
+            )
 
-        response = make_response(
-            jsonify(response_dict),
-            201,
-        )
+            db.session.add(new_product)
+            db.session.commit()
 
-        return response
+            return make_response(jsonify(new_product.to_dict()),201)
+        else:
+            return jsonify({"error": "Incomplete product details"}), 422
+
     
 class ProductByID(Resource):
 
@@ -171,24 +175,38 @@ class Orders(Resource):
         return response
 
     def post(self):
-        new_record = Order(
-            address=request.form['address'],
-            total_amount =request.form['total_amount '],
-            status=request.form['status'],
-            shipping_fees=request.form['shipping_fees'],
-        )
+        user_id = session.get('user_id')
+        data = request.get_json()
 
-        db.session.add(new_record)
-        db.session.commit()
+        address = data.get('address')
+        total_amount= data.get('total_amount')
+        status = data.get('status')
+        shipping_fees = data.get('shipping_fees')
+        order_items = data.get('order_items')
 
-        response_dict = new_record.to_dict()
+        if address and total_amount and status and shipping_fees and order_items:
+            new_order = Order(
+                address=address,
+                total_amount=total_amount,
+                status=status,
+                shipping_fees=shipping_fees,
+                user_id=user_id
+            )
 
-        response = make_response(
-            jsonify(response_dict),
-            201,
-        )
+            for item in order_items:
+                new_order_item = OrderItem(
+                    product_id=item.get('product_id'),
+                    quantity=item.get('quantity'),
+                    subTotal_amount=item.get('subTotal_amount')
+                )
+                new_order.order_items.append(new_order_item)
 
-        return response
+            db.session.add(new_order)
+            db.session.commit()
+
+            return new_order.to_dict(), 201
+        else:
+            return {"error": "Incomplete order details"}, 422
 
 class OrderByID(Resource):
 
@@ -217,24 +235,6 @@ class OrderItems(Resource):
 
         return response
 
-    def post(self):
-
-        new_record = OrderItem(
-            title=request.form['title'],
-            body=request.form['body'],
-        )
-
-        db.session.add(new_record)
-        db.session.commit()
-
-        response_dict = new_record.to_dict()
-
-        response = make_response(
-            jsonify(response_dict),
-            201,
-        )
-
-        return response
     
 class OrderItemsByID(Resource):
 
@@ -345,12 +345,14 @@ class FavouritesByUser(Resource):
 api.add_resource(Index,'/', endpoint='landing')
 api.add_resource(Users, '/users')
 api.add_resource(UsersByID, '/users/<int:id>')
+api.add_resource(LoginUser, '/login_user')
+api.add_resource(SignupUser, '/signup_user')
 api.add_resource(Products, '/products')
 api.add_resource(ProductByID, '/products/<int:id>')
 api.add_resource(Orders, '/orders')
 api.add_resource(OrderByID, '/orders/<int:id>')
-api.add_resource(OrderItems, '/orderItems')
-api.add_resource(OrderItemsByID, '/orderItems/<int:id>')
+api.add_resource(OrderItems, '/order_items')
+api.add_resource(OrderItemsByID, '/order_items/<int:id>')
 api.add_resource(Reviews, '/reviews')
 api.add_resource(ReviewsByUser, '/reviews/<int:id>')
 api.add_resource(Favourites, '/favourites')
