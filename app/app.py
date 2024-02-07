@@ -57,6 +57,7 @@ class Users(Resource):
 
         return response
     
+
 class UsersByID(Resource):
 
     def get(self, id):
@@ -70,6 +71,50 @@ class UsersByID(Resource):
 
         return response
     
+class LoginUser(Resource):
+    def post(self):
+        email  = request.get_json().get('email')
+        password = request.get_json().get("password")
+
+        user = User.query.filter(User.email == email).first()
+
+        if user:
+            if user.authenticate(password):
+                session['user_id']=user.id
+                return make_response(jsonify(user.to_dict()), 200)
+                
+            else:
+                return make_response(jsonify({"error": "Username or password is incorrect"}), 401)
+        else:
+            return make_response(jsonify({"error": "User not Registered"}), 404)
+        
+
+class SignupUser(Resource):
+    def post(self):
+        try:
+            data = request.get_json()
+
+            full_name = data.get('full_name')
+            email = data.get('email')
+            phone_number = data.get('phone_number')
+            password = data.get('password')
+
+            if full_name and phone_number and email and password:
+                new_user = User(full_name=full_name, phone_number=phone_number, email=email)
+                new_user.password_hash = password
+                db.session.add(new_user)
+                db.session.commit()
+
+                session['user_id']=new_user.id
+                session['user_type'] = 'user'
+
+                return make_response(jsonify(new_user.to_dict()),201)
+            
+            return make_response(jsonify({"error": "user details must be added"}),422)
+    
+        except Exception as e:
+            return make_response(jsonify({"error": str(e)}), 500)
+
 
 class Products(Resource):
 

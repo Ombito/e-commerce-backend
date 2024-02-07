@@ -46,8 +46,9 @@ class Product(db.Model, SerializerMixin):
     imageURL = db.Column(db.String())
     description = db.Column(db.String())
     price = db.Column(db.Integer)
-    category = db.Column(db.String())
+    category = db.Column(db.String(), nullable=False)
     rating = db.Column(db.Integer)
+    grouping = db.Column(db.String)
 
     reviews = relationship('Review', backref='reviewed_product', lazy=True)
     orders = relationship('OrderItem', backref='product', lazy=True)
