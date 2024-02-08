@@ -122,24 +122,35 @@ class UserFavourite(Resource):
         else:
             return jsonify({'message': 'User not found'}), 404
         
-    def post(self, user_id, product_id):
-        user = User.query.get(user_id)
-        product = Product.query.get(product_id)
 
-        if user and product:
-            try:
-                favourite = Favourite(user_id=user_id, product_id=product_id)
-                db.session.add(favourite)
-                db.session.commit()
-                return jsonify({'message': 'Product favorited successfully'}), 201
-            except IntegrityError:
-                return jsonify({'message': 'Product already favorited by the user'}), 400
+class UserFavouriteByID(Resource):            
+    def delete(self, user_id, product_id):
+        favourite = Favourite.query.filter_by(user_id=user_id, product_id=product_id).first()
+        if favourite:
+            db.session.delete(favourite)
+            db.session.commit()
+            return {"message": "Favourite deleted successfully"}, 200
         else:
-            return jsonify({'message': 'User or product not found'}), 404
+            return {"error": "Favourite not found"}, 404
+        
+    # def post(self, user_id, product_id):
+    #     user = User.query.get(user_id)
+    #     product = Product.query.get(product_id)
+
+    #     if user and product:
+    #         try:
+    #             favourite = Favourite(user_id=user_id, product_id=product_id)
+    #             db.session.add(favourite)
+    #             db.session.commit()
+    #             return jsonify({'message': 'Product favorited successfully'}), 201
+    #         except IntegrityError:
+    #             return jsonify({'message': 'Product already favorited by the user'}), 400
+    #     else:
+    #         return jsonify({'message': 'User or product not found'}), 404
+
 
 
 class Products(Resource):
-
     def get(self):
 
         response_dict_list = [n.to_dict() for n in Product.query.all()]
@@ -374,6 +385,16 @@ class FavouritesByID(Resource):
         )
 
         return response
+    
+    def delete(self, id):
+        order = Favourite.query.filter_by(id=id).first()
+
+        if order:
+            db.session.delete(order)
+            db.session.commit()
+            return {"message": "Favourite deleted successfully"}, 200
+        else:
+            return {"error": "Favourite not found"}, 404
 
 
 api.add_resource(Index,'/', endpoint='landing')
@@ -382,6 +403,7 @@ api.add_resource(SignupUser, '/signup_user')
 api.add_resource(Users, '/users')
 api.add_resource(UsersByID, '/users/<int:id>')
 api.add_resource(UserFavourite, '/users/<int:user_id>/favourites')
+api.add_resource(UserFavouriteByID, '/users/<int:user_id>/favourites/<int:product_id>')
 api.add_resource(Products, '/products')
 api.add_resource(ProductByID, '/products/<int:id>')
 api.add_resource(Orders, '/orders')
