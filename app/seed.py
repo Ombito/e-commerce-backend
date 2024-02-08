@@ -14,17 +14,17 @@ with app.app_context():
     db.create_all()
 
     user1 = User(
-        full_name='John Doe',
-        email='alvin@gmail.com',
-        phone_number=123456789,
+        full_name='Purity Kamau',
+        email='Purity@gmail.com',
+        phone_number='123456789',
         address='Nairobi, Kenya',
     )
     user1.password_hash = bcrypt.generate_password_hash('password').decode("utf-8")
 
     user2 = User(
-        full_name='Jane Doe',
-        email='joy@gmail.com',
-        phone_number=987654321,
+        full_name='Susan Karanja',
+        email='susan@gmail.com',
+        phone_number='987654321',
         address='Kiambu, Kenya',
     )
     user2.password_hash = bcrypt.generate_password_hash('password').decode("utf-8")
@@ -36,7 +36,7 @@ with app.app_context():
    
     product1 = Product(
         name='Product 1',
-        imageURL='https://example.com/product1.jpg',
+        image_url='https://example.com/product1.jpg',
         description='This is the description for Product 1.',
         price=20,
         category='Fruits',
@@ -45,7 +45,7 @@ with app.app_context():
 
     product2 = Product(
         name='Product 2',
-        imageURL='https://example.com/product2.jpg',
+        image_url='https://example.com/product2.jpg',
         description='This is the description for Product 2.',
         price=15,
         category='Vegetables',
@@ -58,7 +58,7 @@ with app.app_context():
 
 
     order1 = Order(
-        address='789 Oak Street',
+        address='Kisauni, Mombasa',
         total_amount=35,
         status='Delivered',
         shipping_fees=5,
@@ -66,7 +66,7 @@ with app.app_context():
     )
 
     order2 = Order(
-        address='101 Pine Street',
+        address='Langas, Eldoret',
         total_amount=20,
         status='Processing',
         shipping_fees=0,
@@ -82,14 +82,14 @@ with app.app_context():
         order_id=order1.id,
         product_id=product1.id,
         quantity=2,
-        subTotal_amount=40,
+        subtotal_amount=40,
     )
 
     order_item2 = OrderItem(
         order_id=order2.id,
         product_id=product2.id,
         quantity=1,
-        subTotal_amount=15,
+        subtotal_amount=15,
     )
 
     db.session.add(order_item1)

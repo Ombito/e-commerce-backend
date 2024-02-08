@@ -1,8 +1,8 @@
 """Create tables
 
-Revision ID: 95cf9fa16d4e
+Revision ID: 48c00a0abcf7
 Revises: 
-Create Date: 2024-02-05 21:35:54.000998
+Create Date: 2024-02-08 16:37:43.787032
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '95cf9fa16d4e'
+revision = '48c00a0abcf7'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -21,18 +21,19 @@ def upgrade():
     op.create_table('products',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(), nullable=True),
-    sa.Column('imageURL', sa.String(), nullable=True),
+    sa.Column('image_url', sa.String(), nullable=True),
     sa.Column('description', sa.String(), nullable=True),
     sa.Column('price', sa.Integer(), nullable=True),
-    sa.Column('category', sa.String(), nullable=True),
+    sa.Column('category', sa.String(), nullable=False),
     sa.Column('rating', sa.Integer(), nullable=True),
+    sa.Column('grouping', sa.String(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('users',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('full_name', sa.String(length=100), nullable=True),
     sa.Column('email', sa.String(length=100), nullable=True),
-    sa.Column('phone_number', sa.Integer(), nullable=True),
+    sa.Column('phone_number', sa.String(length=150), nullable=True),
     sa.Column('address', sa.String(length=150), nullable=True),
     sa.Column('_password_hash', sa.String(length=100), nullable=False),
     sa.Column('created_at', sa.DateTime(), nullable=True),
@@ -45,7 +46,8 @@ def upgrade():
     sa.Column('product_id', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['product_id'], ['products.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('user_id', 'product_id')
     )
     op.create_table('orders',
     sa.Column('id', sa.Integer(), nullable=False),
@@ -63,8 +65,9 @@ def upgrade():
     sa.Column('content', sa.String(), nullable=True),
     sa.Column('rating', sa.Integer(), nullable=True),
     sa.Column('product', sa.Integer(), nullable=False),
-    sa.Column('user', sa.String(length=150), nullable=True),
+    sa.Column('user', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['product'], ['products.id'], ),
+    sa.ForeignKeyConstraint(['user'], ['users.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('order_items',
@@ -72,7 +75,7 @@ def upgrade():
     sa.Column('order_id', sa.Integer(), nullable=False),
     sa.Column('product_id', sa.Integer(), nullable=False),
     sa.Column('quantity', sa.Integer(), nullable=True),
-    sa.Column('subTotal_amount', sa.Integer(), nullable=True),
+    sa.Column('subtotal_amount', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['order_id'], ['orders.id'], ),
     sa.ForeignKeyConstraint(['product_id'], ['products.id'], ),
     sa.PrimaryKeyConstraint('id')

@@ -4,6 +4,8 @@ from flask_bcrypt import Bcrypt
 from sqlalchemy.ext.hybrid import hybrid_property
 import datetime
 from sqlalchemy.orm import relationship
+from sqlalchemy import UniqueConstraint
+
 
 db = SQLAlchemy()
 bcrypt = Bcrypt()
@@ -14,7 +16,7 @@ class User(db.Model, SerializerMixin):
     id = db.Column(db.Integer, primary_key=True)
     full_name = db.Column(db.String(100))
     email = db.Column(db.String(100), unique=True)
-    phone_number = db.Column(db.Integer)
+    phone_number = db.Column(db.String(150))
     address = db.Column(db.String(150))
     _password_hash = db.Column(db.String(100), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
@@ -35,7 +37,7 @@ class User(db.Model, SerializerMixin):
     favourites = relationship('Favourite', backref='user', lazy=True)
 
     serialize_rules = ('-password_hash', '-orders.user', '-favourites.user')
-                              
+                            
 
 
 class Product(db.Model, SerializerMixin):
@@ -43,11 +45,12 @@ class Product(db.Model, SerializerMixin):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String())
-    imageURL = db.Column(db.String())
+    image_url = db.Column(db.String())
     description = db.Column(db.String())
     price = db.Column(db.Integer)
-    category = db.Column(db.String())
+    category = db.Column(db.String(), nullable=False)
     rating = db.Column(db.Integer)
+    grouping = db.Column(db.String)
 
     reviews = relationship('Review', backref='reviewed_product', lazy=True)
     orders = relationship('OrderItem', backref='product', lazy=True)
@@ -78,7 +81,7 @@ class OrderItem(db.Model, SerializerMixin):
     order_id = db.Column(db.Integer, db.ForeignKey('orders.id'), nullable=False)
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
     quantity = db.Column(db.Integer)
-    subTotal_amount = db.Column(db.Integer)
+    subtotal_amount = db.Column(db.Integer)
 
     serialize_rules = ('-order.product', '-product.orders')
 
@@ -90,7 +93,7 @@ class Review(db.Model, SerializerMixin):
     content = db.Column(db.String())
     rating = db.Column(db.Integer)
     product = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
-    user = db.Column(db.String(150))
+    user = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
 
     serialize_rules = ('-product.reviews', '-user.favourites', '-user.orders')
 
@@ -102,5 +105,8 @@ class Favourite(db.Model, SerializerMixin):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     product_id = db.Column(db.Integer, db.ForeignKey('products.id'), nullable=False)
 
+    __table_args__ = (
+        UniqueConstraint('user_id', 'product_id'),
+    )
 
     serialize_rules = ('-user.orders', '-product.reviews')
