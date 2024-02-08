@@ -33,7 +33,7 @@ Session(app)
 
 class Index(Resource):
     def get(self):
-        response_body = '<h1>Hello to E-commerce server</h1>'
+        response_body = '<h1>Welcome to E-commerce server</h1>'
         status = 200
         headers = {}
         return make_response(response_body,status,headers)
@@ -82,6 +82,30 @@ class SignupUser(Resource):
     
         except Exception as e:
             return make_response(jsonify({"error": str(e)}), 500)
+
+
+class LogoutUser(Resource):
+    def delete(self):
+        if session.get('user_id'):
+            session['user_id']=None
+            return {"message": "User logged out successfully"}
+        else:
+            return {"error":"User must be logged in to logout"}
+        
+
+class CheckSession(Resource):
+    def get(self):
+        user_id = session.get('user_id')
+        if user_id:
+            user = User.query.get(user_id)
+            if user:
+                response = make_response(jsonify(user.to_dict()), 200)
+                response.content_type = 'application/json'
+                return response
+            else:
+                return make_response(jsonify({"error": "User not found"}), 404)
+        else:
+            return make_response(jsonify({"error": "User not logged in"}), 401)
 
 
 class Users(Resource):
@@ -436,6 +460,8 @@ class FavouritesByID(Resource):
 api.add_resource(Index,'/', endpoint='landing')
 api.add_resource(LoginUser, '/login_user')
 api.add_resource(SignupUser, '/signup_user')
+api.add_resource(LogoutUser, '/logout_user')
+api.add_resource(CheckSession, '/checksession')
 api.add_resource(Users, '/users')
 api.add_resource(UsersByID, '/users/<int:id>')
 api.add_resource(UserFavourite, '/users/<int:user_id>/favourites')
