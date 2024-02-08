@@ -133,21 +133,6 @@ class UserFavouriteByID(Resource):
         else:
             return {"error": "Favourite not found"}, 404
         
-    # def post(self, user_id, product_id):
-    #     user = User.query.get(user_id)
-    #     product = Product.query.get(product_id)
-
-    #     if user and product:
-    #         try:
-    #             favourite = Favourite(user_id=user_id, product_id=product_id)
-    #             db.session.add(favourite)
-    #             db.session.commit()
-    #             return jsonify({'message': 'Product favorited successfully'}), 201
-    #         except IntegrityError:
-    #             return jsonify({'message': 'Product already favorited by the user'}), 400
-    #     else:
-    #         return jsonify({'message': 'User or product not found'}), 404
-
 
 
 class Products(Resource):
@@ -190,7 +175,7 @@ class Products(Resource):
         else:
             return jsonify({"error": "Incomplete product details"}), 422
 
-    
+
 class ProductByID(Resource):
 
     def get(self, id):
@@ -202,6 +187,30 @@ class ProductByID(Resource):
         )
 
         return response
+    
+    def patch(self, id):
+        product = Product.query.filter_by(id=id).first()
+
+        if product:
+            for attr in request.get_json():
+                setattr(product,attr,request.get_json()[attr])
+
+                db.session.add(product)
+                db.session.commit()
+            return make_response(jsonify(product.to_dict(), 200)) 
+        
+        
+        return {"error": "Product record not found"}, 404
+    
+    def delete(self, id):
+        product = Product.query.filter_by(id=id).first()
+        if product:
+            db.session.delete(product)
+            db.session.commit()
+            return {"message": "Product deleted successfully"}, 200
+        else:
+            return {"error": "Product not found"}, 404
+    
 
 class Orders(Resource):
 
@@ -261,7 +270,7 @@ class OrderByID(Resource):
         )
 
         return response
-
+    
 
 class OrderItems(Resource):
 
@@ -289,6 +298,23 @@ class OrderItemsByID(Resource):
         )
 
         return response
+    
+    def delete(self, id):
+        order_item = OrderItem.query.get(id)
+        if order_item:
+            try:
+                order = order_item.order
+                if len(order.order_items) == 1:
+                    db.session.delete(order) 
+                db.session.delete(order_item)
+                db.session.commit()
+                return {"message": "Order item deleted successfully"}, 200
+            except Exception as e:
+                return {"error": str(e)}, 500  
+        else:
+            return {"error": "Order item not found"}, 404
+        
+
     
 class Reviews(Resource):
 
@@ -325,6 +351,7 @@ class Reviews(Resource):
             return make_response(jsonify(new_review.to_dict()),201)
         else:
             return jsonify({"error": "Incomplete reviewdetails"}), 422
+        
 
 class ReviewsByID(Resource):
 
@@ -338,6 +365,15 @@ class ReviewsByID(Resource):
         )
 
         return response
+    
+    def delete(self, id):
+        review = Review.query.filter_by(id=id).first()
+        if review:
+            db.session.delete(review)
+            db.session.commit()
+            return {"message": "Review deleted successfully"}, 200
+        else:
+            return {"error": "Review not found"}, 404
     
 
 class Favourites(Resource):
