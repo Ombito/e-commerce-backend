@@ -51,9 +51,27 @@ with app.app_context():
         category='Vegetables',
         rating=3,
     )
+    product3 = Product(
+        name='Product 3',
+        image_url='https://example.com/product3.jpg',
+        description='This is the description for Product 1.',
+        price=20,
+        category='Fruits',
+        rating=4,
+    )
 
+    product4 = Product(
+        name='Product 4',
+        image_url='https://example.com/product4.jpg',
+        description='This is the description for Product 2.',
+        price=15,
+        category='Vegetables',
+        rating=3,
+    )
     db.session.add(product1)
     db.session.add(product2)
+    db.session.add(product3)
+    db.session.add(product4)
     db.session.commit()
 
 

@@ -51,6 +51,7 @@ class Product(db.Model, SerializerMixin):
     category = db.Column(db.String(), nullable=False)
     rating = db.Column(db.Integer)
     grouping = db.Column(db.String)
+    quantity = db.Column(db.Integer)
 
     reviews = relationship('Review', backref='reviewed_product', lazy=True)
     orders = relationship('OrderItem', backref='product', lazy=True)
@@ -110,3 +111,10 @@ class Favourite(db.Model, SerializerMixin):
     )
 
     serialize_rules = ('-user.orders', '-product.reviews')
+
+class Newsletter(db.Model, SerializerMixin):
+    __tablename__ = 'newsletters'
+
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String, nullable=False)
+

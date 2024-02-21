@@ -2,7 +2,7 @@ from models import db
 from flask_cors import CORS
 from flask import Flask, jsonify, request, session, make_response
 from flask_restful import Api, Resource
-from models import User, db, Product, Order, OrderItem, Review, Favourite, bcrypt
+from models import User, db, Product, Order, OrderItem, Review, Favourite, Newsletter, bcrypt
 from flask_migrate import Migrate
 from werkzeug.exceptions import NotFound
 import secrets
@@ -33,7 +33,7 @@ Session(app)
 
 class Index(Resource):
     def get(self):
-        response_body = '<h1>Welcome to E-commerce server</h1>'
+        response_body = '<h1>Welcome to e-Commerce Server</h1>'
         status = 200
         headers = {}
         return make_response(response_body,status,headers)
@@ -456,7 +456,27 @@ class FavouritesByID(Resource):
         else:
             return {"error": "Favourite not found"}, 404
 
+class Newsletter(Resource):
 
+    def get(self):
+        all_newsletters = [newsletter.to_dict() for newsletter in Newsletter.query.all()]
+        
+        return make_response(jsonify(all_newsletters),200)
+   
+    def post(self):
+        data = request.get_json()
+        email = data.get('email')
+       
+        if email:
+            new_newsletter = Newsletter( email=email )
+            
+            db.session.add(new_newsletter)
+            db.session.commit()
+
+            return make_response(new_newsletter.to_dict(), 201) 
+        return {"error": "Newsletter details must be added"}, 422
+    
+    
 api.add_resource(Index,'/', endpoint='landing')
 api.add_resource(LoginUser, '/login_user')
 api.add_resource(SignupUser, '/signup_user')
@@ -476,7 +496,7 @@ api.add_resource(Reviews, '/reviews')
 api.add_resource(ReviewsByID, '/reviews/<int:id>')
 api.add_resource(Favourites, '/favourites')
 api.add_resource(FavouritesByID, '/favourites/<int:id>')
-
+api.add_resource(Newsletter, '/newsletter')
 
 
 if __name__ == '__main__':
