@@ -1,4 +1,4 @@
-from models import db, User, Product, Order, OrderItem, Review, Favourite
+from models import db, User, Product, Order, OrderItem, Review, Favourite, Newsletter
 from flask_bcrypt import Bcrypt
 from datetime import datetime
 from app import app
@@ -144,7 +144,12 @@ with app.app_context():
         product_id=product1.id,
     )
 
+    newsletter1 = Newsletter(
+        email='becky@gmail.com',
+    )
+
     db.session.add(favourite1)
     db.session.add(favourite2)
+    db.session.add(newsletter1)
     db.session.commit()
     print("Database seeded successfully")

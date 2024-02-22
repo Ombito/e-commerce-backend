@@ -459,10 +459,18 @@ class FavouritesByID(Resource):
 class Newsletter(Resource):
 
     def get(self):
-        all_newsletters = [newsletter.to_dict() for newsletter in Newsletter.query.all()]
-        
-        return make_response(jsonify(all_newsletters),200)
+
+        all_newsletters = [n.to_dict() for n in Newsletter.query.all()]
+
+        response = make_response(
+            jsonify(all_newsletters),
+            200,
+        )
+
+        return response
+
    
+        # post newsletter records
     def post(self):
         data = request.get_json()
         email = data.get('email')
@@ -475,7 +483,6 @@ class Newsletter(Resource):
 
             return make_response(new_newsletter.to_dict(), 201) 
         return {"error": "Newsletter details must be added"}, 422
-    
     
 api.add_resource(Index,'/', endpoint='landing')
 api.add_resource(LoginUser, '/login_user')
@@ -496,8 +503,28 @@ api.add_resource(Reviews, '/reviews')
 api.add_resource(ReviewsByID, '/reviews/<int:id>')
 api.add_resource(Favourites, '/favourites')
 api.add_resource(FavouritesByID, '/favourites/<int:id>')
-api.add_resource(Newsletter, '/newsletter')
+api.add_resource(Newsletter, '/newsletters')
 
-
+@app.before_request
+def before_request():
+    if request.method == 'OPTIONS':
+        headers = {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Allow-Credentials': 'true',
+            'Content-Type': 'application/json'
+        }
+        return make_response('', 200, headers)
+    
+    
+@app.errorhandler(NotFound)
+def handle_not_found(e):
+    response = make_response(
+        "Not Found:The requested endpoint(resource) does not exist",
+        404
+        )
+    return response
+    
 if __name__ == '__main__':
     app.run(port=5555, debug=True)

@@ -116,5 +116,5 @@ class Newsletter(db.Model, SerializerMixin):
     __tablename__ = 'newsletters'
 
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String, nullable=False)
+    email = db.Column(db.String)
 
