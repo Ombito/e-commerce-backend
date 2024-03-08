@@ -459,16 +459,8 @@ class FavouritesByID(Resource):
 class Newsletter(Resource):
 
     def get(self):
-
-        all_newsletters = [n.to_dict() for n in Newsletter.query.all()]
-
-        response = make_response(
-            jsonify(all_newsletters),
-            200,
-        )
-
-        return response
-
+        newsletters = Newsletter.query.all()
+        return jsonify([newsletter.email for newsletter in newsletters])
    
         # post newsletter records
     def post(self):

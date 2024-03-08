@@ -3,7 +3,6 @@ from flask_bcrypt import Bcrypt
 from datetime import datetime
 from app import app
 
-
 bcrypt = Bcrypt()
 
 app.app_context().push()
@@ -13,143 +12,282 @@ db.create_all()
 with app.app_context():
     db.create_all()
 
-    user1 = User(
-        full_name='Purity Kamau',
-        email='Purity@gmail.com',
-        phone_number='123456789',
-        address='Nairobi, Kenya',
-    )
-    user1.password_hash = bcrypt.generate_password_hash('password').decode("utf-8")
+    # Seed Users
+    users_data = [
+        {
+            'full_name': 'Purity Kamau',
+            'email': 'purity@gmail.com',
+            'phone_number': '123456789',
+            'address': 'Nairobi, Kenya',
+        },
+        {
+            'full_name': 'Susan Karanja',
+            'email': 'susan@gmail.com',
+            'phone_number': '987654321',
+            'address': 'Kiambu, Kenya',
+        }
+    ]
 
-    user2 = User(
-        full_name='Susan Karanja',
-        email='susan@gmail.com',
-        phone_number='987654321',
-        address='Kiambu, Kenya',
-    )
-    user2.password_hash = bcrypt.generate_password_hash('password').decode("utf-8")
-
-    db.session.add(user1)
-    db.session.add(user2)
+    users = []
+    for user_data in users_data:
+        user = User(**user_data)
+        user.password_hash = bcrypt.generate_password_hash('password').decode("utf-8")
+        users.append(user)
+        db.session.add(user)
     db.session.commit()
 
-   
-    product1 = Product(
-        name='Product 1',
-        image_url='https://example.com/product1.jpg',
-        description='This is the description for Product 1.',
-        price=20,
-        category='Fruits',
-        rating=4,
-    )
+    # Seed Products
+    products_data = [
+        {
+            'name': 'Mango',
+            'image_url': 'https://res.cloudinary.com/duofzxtxh/image/upload/v1709893258/mango_ayi6hj.jpg',
+            'description': 'This is the description for Mango.',
+            'price': 20,
+            'category': 'Fruits',
+            'rating': 4,
+            'grouping': "trending",
+        },
+        {
+            'name': 'Orange',
+            'image_url': 'https://res.cloudinary.com/duofzxtxh/image/upload/v1709893260/oranges_pux073.jpg',
+            'description': 'This is the description for Orange.',
+            'price': 15,
+            'category': 'Fruits',
+            'rating': 3,
+            'grouping': "trending",
+        },
+        {
+            'name': 'Apple',
+            'image_url': 'https://res.cloudinary.com/duofzxtxh/image/upload/v1709893258/apples_hvkv76.jpg',
+            'description': 'This is the description for Apple.',
+            'price': 20,
+            'category': 'Fruits',
+            'rating': 4,
+            'grouping': "trending",
+        },
+        {
+            'name': 'Banana',
+            'image_url': 'https://res.cloudinary.com/duofzxtxh/image/upload/v1709893258/banana_f0cy6k.jpg',
+            'description': 'This is the description for Banana.',
+            'price': 15,
+            'category': 'Fruits',
+            'rating': 3,
+            'grouping': "trending",
+        },
+        {
+            'name': 'Ovacado',
+            'image_url': 'https://res.cloudinary.com/duofzxtxh/image/upload/v1709893262/ovacado_lbbhzl.jpg',
+            'description': 'This is the description for Banana.',
+            'price': 15,
+            'category': 'Fruits',
+            'rating': 3,
+            'grouping': "trending",
+        },
+        {
+            'name': 'Pawpaw',
+            'image_url': 'https://res.cloudinary.com/duofzxtxh/image/upload/v1709893263/pawpaw_rt1cun.jpg',
+            'description': 'This is the description for Banana.',
+            'price': 15,
+            'category': 'Fruits',
+            'rating': 3,
+            'grouping': "trending",
+        },
+        {
+            'name': 'Tea',
+            'image_url': 'https://res.cloudinary.com/duofzxtxh/image/upload/v1709893271/tea_slr6il.webp',
+            'description': 'This is the description for Banana.',
+            'price': 15,
+            'category': 'Beverages',
+            'rating': 3,
+            'grouping': "trending",
+        },
+        {
+            'name': 'Sugarcane',
+            'image_url': 'https://res.cloudinary.com/duofzxtxh/image/upload/v1709893265/sugarcane1_wtfdx5.jpg',
+            'description': 'This is the description for Banana.',
+            'price': 15,
+            'category': 'Other produce',
+            'rating': 3,
+            'grouping': "trending",
+        },
+        {
+            'name': 'Grapes',
+            'image_url': 'https://res.cloudinary.com/duofzxtxh/image/upload/v1709893265/grapes_asxia1.jpg',
+            'description': 'This is the description for Banana.',
+            'price': 15,
+            'category': 'Fruits',
+            'rating': 3,
+            'grouping': "featured",
+        },
+        {
+            'name': 'Cows',
+            'image_url': 'https://res.cloudinary.com/duofzxtxh/image/upload/v1709893262/beef_qraucw.webp',
+            'description': 'This is the description for Banana.',
+            'price': 15,
+            'category': 'Meat & Poultry',
+            'rating': 3,
+            'grouping': "featured",
+        },
+        {
+            'name': 'Eggs',
+            'image_url': 'https://res.cloudinary.com/duofzxtxh/image/upload/v1709893258/eggs_v6hqmf.jpg',
+            'description': 'This is the description for Banana.',
+            'price': 15,
+            'category': 'Meat & Poultry',
+            'rating': 3,
+            'grouping': "featured",
+        },
+        {
+            'name': 'Mushroom',
+            'image_url': 'https://res.cloudinary.com/duofzxtxh/image/upload/v1709893258/mushroom_m6gfjk.jpg',
+            'description': 'This is the description for Banana.',
+            'price': 15,
+            'category': 'Other Produce',
+            'rating': 3,
+            'grouping': "trending",
+        },
+        {
+            'name': 'Ovacado',
+            'image_url': 'https://res.cloudinary.com/duofzxtxh/image/upload/v1709893262/ovacado_lbbhzl.jpg',
+            'description': 'This is the description for Banana.',
+            'price': 15,
+            'category': 'Fruits',
+            'rating': 3,
+            'grouping': "trending",
+        },
+        {
+            'name': 'Ovacado',
+            'image_url': 'https://res.cloudinary.com/duofzxtxh/image/upload/v1709893262/ovacado_lbbhzl.jpg',
+            'description': 'This is the description for Banana.',
+            'price': 15,
+            'category': 'Fruits',
+            'rating': 3,
+            'grouping': "trending",
+        },
+        {
+            'name': 'Ovacado',
+            'image_url': 'https://res.cloudinary.com/duofzxtxh/image/upload/v1709893262/ovacado_lbbhzl.jpg',
+            'description': 'This is the description for Banana.',
+            'price': 15,
+            'category': 'Fruits',
+            'rating': 3,
+            'grouping': "trending",
+        },
+        {
+            'name': 'Ovacado',
+            'image_url': 'https://res.cloudinary.com/duofzxtxh/image/upload/v1709893262/ovacado_lbbhzl.jpg',
+            'description': 'This is the description for Banana.',
+            'price': 15,
+            'category': 'Fruits',
+            'rating': 3,
+            'grouping': "trending",
+        },
+    ]
 
-    product2 = Product(
-        name='Product 2',
-        image_url='https://example.com/product2.jpg',
-        description='This is the description for Product 2.',
-        price=15,
-        category='Vegetables',
-        rating=3,
-    )
-    product3 = Product(
-        name='Product 3',
-        image_url='https://example.com/product3.jpg',
-        description='This is the description for Product 1.',
-        price=20,
-        category='Fruits',
-        rating=4,
-    )
-
-    product4 = Product(
-        name='Product 4',
-        image_url='https://example.com/product4.jpg',
-        description='This is the description for Product 2.',
-        price=15,
-        category='Vegetables',
-        rating=3,
-    )
-    db.session.add(product1)
-    db.session.add(product2)
-    db.session.add(product3)
-    db.session.add(product4)
+    products = []
+    for product_data in products_data:
+        product = Product(**product_data)
+        products.append(product)
+        db.session.add(product)
     db.session.commit()
 
 
-    order1 = Order(
-        address='Kisauni, Mombasa',
-        total_amount=35,
-        status='Delivered',
-        shipping_fees=5,
-        user_id=user1.id,
-    )
+    # Seed Orders
+    orders_data = [
+        {
+            'address': 'Kisauni, Mombasa',
+            'total_amount': 35,
+            'status': 'Delivered',
+            'shipping_fees': 5,
+            'user_id': users[0].id,
+        },
+        {
+            'address': 'Langas, Eldoret',
+            'total_amount': 20,
+            'status': 'Processing',
+            'shipping_fees': 0,
+            'user_id': users[1].id,
+        }
+    ]
 
-    order2 = Order(
-        address='Langas, Eldoret',
-        total_amount=20,
-        status='Processing',
-        shipping_fees=0,
-        user_id=user2.id,
-    )
-
-    db.session.add(order1)
-    db.session.add(order2)
+    orders = []
+    for order_data in orders_data:
+        order = Order(**order_data)
+        orders.append(order)
+        db.session.add(order)
     db.session.commit()
 
 
-    order_item1 = OrderItem(
-        order_id=order1.id,
-        product_id=product1.id,
-        quantity=2,
-        subtotal_amount=40,
-    )
+    # Seed Order Items
+    order_items_data = [
+        {
+            'order_id': orders[0].id,
+            'product_id': products[0].id,
+            'quantity': 2,
+            'subtotal_amount': 40,
+        },
+        {
+            'order_id': orders[1].id,
+            'product_id': products[1].id,
+            'quantity': 1,
+            'subtotal_amount': 15,
+        }
+    ]
 
-    order_item2 = OrderItem(
-        order_id=order2.id,
-        product_id=product2.id,
-        quantity=1,
-        subtotal_amount=15,
-    )
+    for order_item_data in order_items_data:
+        order_item = OrderItem(**order_item_data)
+        db.session.add(order_item)
+    db.session.commit()
 
-    db.session.add(order_item1)
-    db.session.add(order_item2)
+    # Seed Reviews
+    reviews_data = [
+    {
+        'content': 'Great product!',
+        'rating': 5,
+        'product': products[0].id,
+        'user': users[0].id, 
+    },
+    {
+        'content': 'Not bad, but could be better.',
+        'rating': 3,
+        'product': products[1].id, 
+        'user': users[1].id, 
+    }
+]
+
+for review_data in reviews_data:
+    review = Review(**review_data)
+    db.session.add(review)
+
     db.session.commit()
 
 
-    review1 = Review(
-        content='Great product!',
-        rating=5,
-        product=product1.id,
-        user=user1.id,
-    )
+    # Seed Favourites
+    
+    favourites_data = [
+        {
+            'user_id': users[0].id,
+            'product_id': products[1].id,
+        },
+        {
+            'user_id': users[1].id,
+            'product_id': products[0].id,
+        }
+    ]
 
-    review2 = Review(
-        content='Not bad, but could be better.',
-        rating=3,
-        product=product2.id,
-        user=user2.id,
-    )
+    for favourite_data in favourites_data:
 
-    db.session.add(review1)
-    db.session.add(review2)
+        existing_favourite = Favourite.query.filter_by(**favourite_data).first()
+        if existing_favourite is None:
+            favourite = Favourite(**favourite_data)
+            db.session.add(favourite)
     db.session.commit()
 
-
-    favourite1 = Favourite(
-        user_id=user1.id,
-        product_id=product2.id,
-    )
-
-    favourite2 = Favourite(
-        user_id=user2.id,
-        product_id=product1.id,
-    )
-
-    newsletter1 = Newsletter(
+    # Seed Newsletter
+    newsletter = Newsletter(
         email='becky@gmail.com',
     )
-
-    db.session.add(favourite1)
-    db.session.add(favourite2)
-    db.session.add(newsletter1)
+    db.session.add(newsletter)
     db.session.commit()
-    print("Database seeded successfully")
+
+print("Database seeded successfully")
