@@ -198,16 +198,37 @@ with app.app_context():
             'address': 'Kisauni, Mombasa',
             'total_amount': 35,
             'status': 'Delivered',
-            'shipping_fees': 5,
+            'shipping_fees': 25,
             'user_id': users[0].id,
         },
         {
             'address': 'Langas, Eldoret',
             'total_amount': 20,
             'status': 'Processing',
-            'shipping_fees': 0,
+            'shipping_fees': 10,
             'user_id': users[1].id,
-        }
+        },
+        {
+            'address': 'Kileleshwa, Nairobi',
+            'total_amount': 40000,
+            'status': 'Delivered',
+            'shipping_fees': 35,
+            'user_id': users[0].id,
+        },
+        {
+            'address': 'Kayole, Nakuru',
+            'total_amount': 155,
+            'status': 'Delivered',
+            'shipping_fees': 15,
+            'user_id': users[1].id,
+        },
+        {
+            'address': 'Donholm, Nairobi',
+            'total_amount': 2500,
+            'status': 'Delivered',
+            'shipping_fees': 5,
+            'user_id': users[0].id,
+        },
     ]
 
     orders = []

@@ -6,8 +6,8 @@ from models import User, db, Product, Order, OrderItem, Review, Favourite, Newsl
 from flask_migrate import Migrate
 from werkzeug.exceptions import NotFound
 import secrets
-from sqlalchemy import and_
-from datetime import timedelta
+from sqlalchemy import and_, func
+from datetime import datetime, timedelta
 from flask_session import Session
 from sqlalchemy.exc import IntegrityError
 
@@ -109,7 +109,6 @@ class CheckSession(Resource):
 
 
 class Users(Resource):
-
     def get(self):
 
         response_dict_list = [n.to_dict() for n in User.query.all()]
@@ -123,7 +122,6 @@ class Users(Resource):
     
 
 class UsersByID(Resource):
-
     def get(self, id):
 
         response_dict = User.query.filter_by(id=id).first().to_dict()
@@ -201,7 +199,6 @@ class Products(Resource):
 
 
 class ProductByID(Resource):
-
     def get(self, id):
         response_dict = Product.query.filter_by(id=id).first().to_dict()
 
@@ -237,7 +234,6 @@ class ProductByID(Resource):
     
 
 class Orders(Resource):
-
     def get(self):
 
         response_dict_list = [n.to_dict() for n in Order.query.all()]
@@ -283,7 +279,6 @@ class Orders(Resource):
             return {"error": "Incomplete order details"}, 422
 
 class OrderByID(Resource):
-
     def get(self, id):
 
         response_dict = Order.query.filter_by(id=id).first().to_dict()
@@ -297,7 +292,6 @@ class OrderByID(Resource):
     
 
 class OrderItems(Resource):
-
     def get(self):
 
         response_dict_list = [n.to_dict() for n in OrderItem.query.all()]
@@ -311,7 +305,6 @@ class OrderItems(Resource):
 
     
 class OrderItemsByID(Resource):
-
     def get(self, id):
 
         response_dict = OrderItem.query.filter_by(id=id).first().to_dict()
@@ -341,7 +334,6 @@ class OrderItemsByID(Resource):
 
     
 class Reviews(Resource):
-
     def get(self):
 
         response_dict_list = [n.to_dict() for n in Review.query.all()]
@@ -378,7 +370,6 @@ class Reviews(Resource):
         
 
 class ReviewsByID(Resource):
-
     def get(self, id):
 
         response_dict = OrderItem.query.filter_by(id=id).first().to_dict()
@@ -401,7 +392,6 @@ class ReviewsByID(Resource):
     
 
 class Favourites(Resource):
-
     def get(self):
 
         response_dict_list = [n.to_dict() for n in Favourite.query.all()]
@@ -434,7 +424,6 @@ class Favourites(Resource):
     
     
 class FavouritesByID(Resource):
-
     def get(self, id):
 
         response_dict = Favourite.query.filter_by(id=id).first().to_dict()
@@ -457,7 +446,6 @@ class FavouritesByID(Resource):
             return {"error": "Favourite not found"}, 404
 
 class Newsletter(Resource):
-
     def get(self):
         newsletters = Newsletter.query.all()
         return jsonify([newsletter.email for newsletter in newsletters])
@@ -476,6 +464,52 @@ class Newsletter(Resource):
             return make_response(new_newsletter.to_dict(), 201) 
         return {"error": "Newsletter details must be added"}, 422
     
+class OrdersPerMonth(Resource):
+    def get(self):
+        orders_data = []
+        current_date = datetime.now()
+
+        for i in range(5, -1, -1): 
+            start_date = current_date - timedelta(days=i * 30)
+            end_date = current_date - timedelta(days=(i - 1) * 30)
+            orders_count = Order.query.filter(Order.order_date >= start_date, Order.order_date < end_date).count()
+            orders_data.append({
+                'month': start_date.strftime('%B'),
+                'orders_count': orders_count
+            })
+        return jsonify(orders_data)
+
+class TopProducts(Resource):
+    def get(self):
+        try:
+            top_products = db.session.query(Product.name, func.count(OrderItem.id).label('num_orders')) \
+                .join(OrderItem, OrderItem.product_id == Product.id) \
+                .group_by(Product.name) \
+                .order_by(func.count(OrderItem.id).desc()) \
+                .limit(5) \
+                .all()           
+
+            response_data = [{'product_name': product_name, 'num_orders': num_orders} for product_name, num_orders in top_products]
+
+            return {'data': response_data}, 200
+        except Exception as e:
+            return {'error': str(e)}, 500
+        
+class ProductCategories(Resource):
+    def get(self):
+        try:
+            category_counts = db.session.query(Product.category, func.count(Product.id).label('count')) \
+                            .group_by(Product.category) \
+                            .all()
+
+            # Prepare response data
+            response_data = [{'category': category, 'count': count} for category, count in category_counts]
+
+            return {'data': response_data}, 200
+        except Exception as e:
+            return {'error': str(e)}, 500
+
+
 api.add_resource(Index,'/', endpoint='landing')
 api.add_resource(LoginUser, '/login_user')
 api.add_resource(SignupUser, '/signup_user')
@@ -496,6 +530,9 @@ api.add_resource(ReviewsByID, '/reviews/<int:id>')
 api.add_resource(Favourites, '/favourites')
 api.add_resource(FavouritesByID, '/favourites/<int:id>')
 api.add_resource(Newsletter, '/newsletters')
+api.add_resource(OrdersPerMonth, '/orders-per-month')
+api.add_resource(TopProducts, '/top-products')
+api.add_resource(ProductCategories, '/product-categories')
 
 @app.before_request
 def before_request():
