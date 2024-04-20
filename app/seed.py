@@ -15,13 +15,15 @@ with app.app_context():
     # Seed Users
     users_data = [
         {
-            'full_name': 'Purity Kamau',
+            'first_name': 'Purity',
+            'last_name': 'Kamau',
             'email': 'purity@gmail.com',
             'phone_number': '123456789',
             'address': 'Nairobi, Kenya',
         },
         {
-            'full_name': 'Susan Karanja',
+            'first_name': 'Susan',
+            'last_name': 'Karanja',
             'email': 'susan@gmail.com',
             'phone_number': '987654321',
             'address': 'Kiambu, Kenya',
@@ -46,6 +48,7 @@ with app.app_context():
             'category': 'Fruits',
             'rating': 4,
             'grouping': "trending",
+            'quantity': 1,
         },
         {
             'name': 'Orange',
@@ -55,6 +58,7 @@ with app.app_context():
             'category': 'Fruits',
             'rating': 3,
             'grouping': "trending",
+            'quantity': 1,
         },
         {
             'name': 'Apple',
@@ -64,6 +68,7 @@ with app.app_context():
             'category': 'Fruits',
             'rating': 4,
             'grouping': "trending",
+            'quantity': 1,
         },
         {
             'name': 'Banana',
@@ -73,6 +78,7 @@ with app.app_context():
             'category': 'Fruits',
             'rating': 3,
             'grouping': "trending",
+            'quantity': 1,
         },
         {
             'name': 'Ovacado',
@@ -82,6 +88,7 @@ with app.app_context():
             'category': 'Fruits',
             'rating': 3,
             'grouping': "trending",
+            'quantity': 1,
         },
         {
             'name': 'Pawpaw',
@@ -91,6 +98,7 @@ with app.app_context():
             'category': 'Fruits',
             'rating': 3,
             'grouping': "trending",
+            'quantity': 1,
         },
         {
             'name': 'Tea',
@@ -100,6 +108,7 @@ with app.app_context():
             'category': 'Beverages',
             'rating': 3,
             'grouping': "trending",
+            'quantity': 1,
         },
         {
             'name': 'Sugarcane',
@@ -109,6 +118,7 @@ with app.app_context():
             'category': 'Other produce',
             'rating': 3,
             'grouping': "trending",
+            'quantity': 1,
         },
         {
             'name': 'Grapes',
@@ -118,6 +128,7 @@ with app.app_context():
             'category': 'Fruits',
             'rating': 3,
             'grouping': "featured",
+            'quantity': 1,
         },
         {
             'name': 'Cows',
@@ -127,6 +138,7 @@ with app.app_context():
             'category': 'Meat & Poultry',
             'rating': 3,
             'grouping': "featured",
+            'quantity': 1,
         },
         {
             'name': 'Eggs',
@@ -136,6 +148,7 @@ with app.app_context():
             'category': 'Meat & Poultry',
             'rating': 3,
             'grouping': "featured",
+            'quantity': 1,
         },
         {
             'name': 'Mushroom',
@@ -145,6 +158,7 @@ with app.app_context():
             'category': 'Other Produce',
             'rating': 3,
             'grouping': "trending",
+            'quantity': 1,
         },
         {
             'name': 'Ovacado',
@@ -154,6 +168,7 @@ with app.app_context():
             'category': 'Fruits',
             'rating': 3,
             'grouping': "trending",
+            'quantity': 1,
         },
         {
             'name': 'Ovacado',
@@ -163,6 +178,7 @@ with app.app_context():
             'category': 'Fruits',
             'rating': 3,
             'grouping': "trending",
+            'quantity': 1,
         },
         {
             'name': 'Ovacado',
@@ -172,6 +188,7 @@ with app.app_context():
             'category': 'Fruits',
             'rating': 3,
             'grouping': "trending",
+            'quantity': 1,
         },
         {
             'name': 'Ovacado',
@@ -181,6 +198,7 @@ with app.app_context():
             'category': 'Fruits',
             'rating': 3,
             'grouping': "trending",
+            'quantity': 1,
         },
     ]
 

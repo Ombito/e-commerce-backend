@@ -62,13 +62,14 @@ class SignupUser(Resource):
         try:
             data = request.get_json()
 
-            full_name = data.get('full_name')
+            first_name = data.get('first_name')
+            last_name = data.get('last_name')
             email = data.get('email')
             phone_number = data.get('phone_number')
             password = data.get('password')
 
-            if full_name and phone_number and email and password:
-                new_user = User(full_name=full_name, phone_number=phone_number, email=email)
+            if first_name and last_name and phone_number and email and password:
+                new_user = User(first_name=first_name, last_name=last_name, phone_number=phone_number, email=email)
                 new_user.password_hash = password
                 db.session.add(new_user)
                 db.session.commit()
@@ -178,6 +179,7 @@ class Products(Resource):
         image_url = data.get('image_url')
         price = data.get('price')
         rating = data.get('rating')
+        quantity = data.get('quantity')
 
         if name and category and description and image_url and price and rating:
             new_product = Product(
@@ -187,7 +189,8 @@ class Products(Resource):
                 price=price,
                 category=category,
                 rating=rating,
-                grouping=grouping,          
+                grouping=grouping,
+                quantity=quantity,          
             )
 
             db.session.add(new_product)
@@ -245,13 +248,14 @@ class Orders(Resource):
         return response
 
     def post(self):
-        user_id = session.get('user_id')
+        # user_id = session.get('user_id')
         data = request.get_json()
 
         address = data.get('address')
         total_amount= data.get('total_amount')
         status = data.get('status')
         shipping_fees = data.get('shipping_fees')
+        user_id = data.get('user_id')
         order_items = data.get('order_items')
 
         if address and total_amount and status and shipping_fees and order_items:
@@ -502,7 +506,6 @@ class ProductCategories(Resource):
                             .group_by(Product.category) \
                             .all()
 
-            # Prepare response data
             response_data = [{'category': category, 'count': count} for category, count in category_counts]
 
             return {'data': response_data}, 200
