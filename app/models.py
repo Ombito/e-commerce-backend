@@ -14,7 +14,8 @@ class User(db.Model, SerializerMixin):
     __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
-    full_name = db.Column(db.String(100))
+    first_name = db.Column(db.String(100))
+    last_name = db.Column(db.String(100))
     email = db.Column(db.String(100), unique=True)
     phone_number = db.Column(db.String(150))
     address = db.Column(db.String(150))
@@ -51,6 +52,7 @@ class Product(db.Model, SerializerMixin):
     category = db.Column(db.String(), nullable=False)
     rating = db.Column(db.Integer)
     grouping = db.Column(db.String)
+    quantity = db.Column(db.Integer)
 
     reviews = relationship('Review', backref='reviewed_product', lazy=True)
     orders = relationship('OrderItem', backref='product', lazy=True)
@@ -110,3 +112,10 @@ class Favourite(db.Model, SerializerMixin):
     )
 
     serialize_rules = ('-user.orders', '-product.reviews')
+
+class Newsletter(db.Model, SerializerMixin):
+    __tablename__ = 'newsletters'
+
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String)
+
