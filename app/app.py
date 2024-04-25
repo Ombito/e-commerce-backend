@@ -10,10 +10,11 @@ from sqlalchemy import and_, func
 from datetime import datetime, timedelta
 from flask_session import Session
 from sqlalchemy.exc import IntegrityError
+import jwt
 
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}}, support_credentials=True)
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True, allow_headers=["Content-Type", "Authorization"])
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///mydb.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -23,7 +24,6 @@ app.config['SESSION_TYPE'] = 'filesystem'
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=7)
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['SESSION_FILE_DIR'] = 'session_dir'
-
 
 
 db.init_app(app)
@@ -48,8 +48,8 @@ class LoginUser(Resource):
 
         if user:
             if user.authenticate(password):
-                session['user_id']=user.id
-                return make_response(jsonify(user.to_dict()), 200)
+                token = jwt.encode({'user_id': user.id}, app.config['SECRET_KEY'], algorithm='HS256')
+                return {'token': token}, 200
                 
             else:
                 return make_response(jsonify({"error": "Username or password is incorrect"}), 401)
@@ -96,17 +96,26 @@ class LogoutUser(Resource):
 
 class CheckSession(Resource):
     def get(self):
-        user_id = session.get('user_id')
-        if user_id:
-            user = User.query.get(user_id)
-            if user:
-                response = make_response(jsonify(user.to_dict()), 200)
-                response.content_type = 'application/json'
-                return response
+        auth_header = request.headers.get('Authorization')
+        if not auth_header:
+            return {'error': 'Authorization header missing'}, 401
+
+        try:
+            token = auth_header.split()[1]
+            payload = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
+            user_id = payload.get('user_id')
+            if user_id:
+                user = User.query.get(user_id)
+                if user:
+                    return user.to_dict(), 200
+                else:
+                    return {'error': 'User not found'}, 404
             else:
-                return make_response(jsonify({"error": "User not found"}), 404)
-        else:
-            return make_response(jsonify({"error": "User not logged in"}), 401)
+                return {'error': 'Invalid token'}, 401
+        except jwt.ExpiredSignatureError:
+            return {'error': 'Token has expired'}, 401
+        except jwt.InvalidTokenError:
+            return {'error': 'Invalid token'}, 401
 
 
 class Users(Resource):
@@ -123,8 +132,8 @@ class Users(Resource):
     
 
 class UsersByID(Resource):
-    def get(self, id):
-
+    def get(self, id): 
+        
         response_dict = User.query.filter_by(id=id).first().to_dict()
 
         response = make_response(
@@ -336,7 +345,52 @@ class OrderItemsByID(Resource):
             return {"error": "Order item not found"}, 404
         
 
+# class MpesaExpress(Resource):
+#     def post(self):
+#         data = request.get_json()
+
+#         amount = data.get('amount')
+#         phone = data.get(phone)
+
+#         endpoint = 'https://sandbpx.safaricom.co.ke/mpesa/stkpush/v1/processrequest'
+#         access_token = getAccesstoken()
+#         headers = { "Authorization" : "Bearer %s" % access_token }
+#         Timestamp= datetime.now()
+#         times = Timestamp.strftime("%Y%m%d%H%M%S")
+#         password = "1743379" + "bfbfdbebebbb3b33b3bbbll33a33a3aaa4aa5a5a5c919" + times
+#         password = base.64.b64encode(password.encode('utf-8'))
+
+#         data = {
+#             'BusinessShortCode': '17373',
+#             'Password': password,
+#             'Timestamp': times,
+#             'TransactionType': 'CustomerPayBillOnline',
+#             'PartyA': phone,
+#             'PartyB': '17373',
+#             'PhoneNumber': phone,
+#             'CallBackURL': "my_endpoint"+ "/lnmo-callback",
+#             "AccountReference": "TestPay",
+#             "TransactionDesc": 'Test',
+#             "Amount": amount
+#         }
+
+# class Acesstoken(Resource):
+#     def incoming():
+#         data = request.get_json()
+#         print(data)
+#         return "Ok"
     
+#     def getAccessToken():
+#         consumer_key = "Lkkkskkksksd8e322hkl09888ced88"
+#         consumer_secret = "teluuu3nnn3098evdve"
+#         endpoint = "https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials"
+
+#         r = requests.get(endpoint, auth=HTTPBasicAuth(
+#             consumer_key, consumer_secret))
+#         data = r.json()
+#         return data['access_token']
+    
+
 class Reviews(Resource):
     def get(self):
 
@@ -517,7 +571,7 @@ api.add_resource(Index,'/', endpoint='landing')
 api.add_resource(LoginUser, '/login_user')
 api.add_resource(SignupUser, '/signup_user')
 api.add_resource(LogoutUser, '/logout_user')
-api.add_resource(CheckSession, '/checksession')
+api.add_resource(CheckSession, '/check_session')
 api.add_resource(Users, '/users')
 api.add_resource(UsersByID, '/users/<int:id>')
 api.add_resource(UserFavourite, '/users/<int:user_id>/favourites')
@@ -558,5 +612,6 @@ def handle_not_found(e):
         )
     return response
     
+
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
