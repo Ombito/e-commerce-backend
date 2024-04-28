@@ -187,17 +187,15 @@ class Products(Resource):
         grouping = data.get('grouping')
         image_url = data.get('image_url')
         price = data.get('price')
-        rating = data.get('rating')
         quantity = data.get('quantity')
 
-        if name and category and description and image_url and price and rating:
+        if name and category and description and image_url and price:
             new_product = Product(
                 name=name,
                 image_url=image_url,
                 description=description,
                 price=price,
                 category=category,
-                rating=rating,
                 grouping=grouping,
                 quantity=quantity,          
             )
@@ -508,7 +506,6 @@ class Newsletter(Resource):
         newsletters = Newsletter.query.all()
         return jsonify([newsletter.email for newsletter in newsletters])
    
-        # post newsletter records
     def post(self):
         data = request.get_json()
         email = data.get('email')
@@ -557,14 +554,54 @@ class ProductCategories(Resource):
     def get(self):
         try:
             category_counts = db.session.query(Product.category, func.count(Product.id).label('count')) \
-                            .group_by(Product.category) \
-                            .all()
+                .group_by(Product.category) \
+                .all()
 
             response_data = [{'category': category, 'count': count} for category, count in category_counts]
 
             return {'data': response_data}, 200
         except Exception as e:
             return {'error': str(e)}, 500
+
+class DashboardStatsResource(Resource):
+    def get(self):
+        try:
+            total_sales = db.session.query(func.sum(Order.total_amount)).scalar() or 0
+            products_sold = db.session.query(func.sum(OrderItem.quantity)).scalar() or 0
+            total_earnings = db.session.query(func.sum(Order.total_amount + Order.shipping_fees)).scalar() or 0
+            total_customers = User.query.count()
+
+            dashboard_stats = [
+                {
+                    'label': 'Total Sales',
+                    'value': f'{total_sales}',
+                    'color': '#85bc2b',
+                    'icon': 'FaMoneyBillAlt'
+                },
+                {
+                    'label': 'Products Sold',
+                    'value': f'{products_sold:,}',
+                    'color': 'orange',
+                    'icon': 'FaShoppingCart'
+                },
+                {
+                    'label': 'Total Earnings',
+                    'value': f'KES {total_earnings}',
+                    'color': 'red',
+                    'icon': 'FaDollarSign'
+                },
+                {
+                    'label': 'Total Customers',
+                    'value': f'{total_customers}',
+                    'color': 'purple',
+                    'icon': 'FaUsers'
+                }
+            ]
+
+            return jsonify(dashboard_stats)
+        except Exception as e:
+            return {'error': str(e)}, 500
+        
 
 
 api.add_resource(Index,'/', endpoint='landing')
@@ -590,6 +627,7 @@ api.add_resource(Newsletter, '/newsletters')
 api.add_resource(OrdersPerMonth, '/orders-per-month')
 api.add_resource(TopProducts, '/top-products')
 api.add_resource(ProductCategories, '/product-categories')
+api.add_resource(DashboardStatsResource, '/dashboard-stats')
 
 @app.before_request
 def before_request():
