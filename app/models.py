@@ -18,7 +18,7 @@ class User(db.Model, SerializerMixin):
     last_name = db.Column(db.String(100))
     email = db.Column(db.String(100), unique=True)
     phone_number = db.Column(db.String(150))
-    address = db.Column(db.String(150))
+    address = db.Column(db.String())
     _password_hash = db.Column(db.String(100), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow)
 
@@ -36,8 +36,9 @@ class User(db.Model, SerializerMixin):
     
     orders = relationship('Order', backref='user', lazy=True)
     favourites = relationship('Favourite', backref='user', lazy=True)
+    payments = relationship('Payment', backref='user', lazy=True)
 
-    serialize_rules = ('-password_hash', '-orders.user', '-favourites.user')
+    serialize_rules = ('-password_hash', '-orders.user', '-favourites.user', '-payments.user')
                             
 
 
@@ -112,6 +113,17 @@ class Favourite(db.Model, SerializerMixin):
     )
 
     serialize_rules = ('-user.orders', '-product.reviews')
+
+class Payment(db.Model, SerializerMixin):
+    __tablename__ = 'payments'
+
+    id = db.Column(db.Integer, primary_key=True)
+    mpesa_number = db.Column(db.String(150))
+    amount = db.Column(db.Integer)
+    payment_date = db.Column(db.DateTime, default=datetime.datetime.utcnow)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    status = db.Column(db.String(100))
+
 
 class Newsletter(db.Model, SerializerMixin):
     __tablename__ = 'newsletters'

@@ -2,7 +2,7 @@ from models import db
 from flask_cors import CORS
 from flask import Flask, jsonify, request, session, make_response
 from flask_restful import Api, Resource
-from models import User, db, Product, Order, OrderItem, Review, Favourite, Newsletter, bcrypt
+from models import User, db, Product, Order, OrderItem, Review, Favourite, Newsletter, Payment, bcrypt
 from flask_migrate import Migrate
 from werkzeug.exceptions import NotFound
 import secrets
@@ -255,7 +255,7 @@ class Orders(Resource):
         return response
 
     def post(self):
-        # user_id = session.get('user_id')
+        user_id = session.get('user_id')
         data = request.get_json()
 
         address = data.get('address')
@@ -343,9 +343,39 @@ class OrderItemsByID(Resource):
             return {"error": "Order item not found"}, 404
         
 
-# class MpesaExpress(Resource):
-#     def post(self):
-#         data = request.get_json()
+class MpesaExpress(Resource):
+    def get(self):
+
+        response_dict_list = [n.to_dict() for n in Payment.query.all()]
+
+        response = make_response(
+            jsonify(response_dict_list),
+            200,
+        )
+        return response
+    
+    def post(self):
+        user_id = session.get('user_id')
+        data = request.get_json()
+
+        amount= data.get('amount')
+        mpesa_number = data.get('mpesa_number')
+        status = data.get('status')
+
+        if amount and mpesa_number:
+            new_payment = Payment(
+                mpesa_number=mpesa_number,
+                amount=amount,
+                status=status,
+                user_id=user_id
+            )
+
+            db.session.add(new_payment)
+            db.session.commit()
+
+            return new_payment.to_dict(), 201
+        else:
+            return {"error": "Payment details not complete"}, 422
 
 #         amount = data.get('amount')
 #         phone = data.get(phone)
@@ -624,6 +654,7 @@ api.add_resource(ReviewsByID, '/reviews/<int:id>')
 api.add_resource(Favourites, '/favourites')
 api.add_resource(FavouritesByID, '/favourites/<int:id>')
 api.add_resource(Newsletter, '/newsletters')
+api.add_resource(MpesaExpress, '/pay')
 api.add_resource(OrdersPerMonth, '/orders-per-month')
 api.add_resource(TopProducts, '/top-products')
 api.add_resource(ProductCategories, '/product-categories')
