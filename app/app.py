@@ -18,6 +18,7 @@ CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True, allow_
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///mydb.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_POOL_SIZE'] = 20 
 app.config['JSONIFY_PRETTYPRINT_REGULAR']= True
 app.secret_key = secrets.token_hex(16)
 app.config['SESSION_TYPE'] = 'filesystem'
@@ -255,7 +256,7 @@ class Orders(Resource):
         return response
 
     def post(self):
-        user_id = session.get('user_id')
+        # user_id = session.get('user_id')
         data = request.get_json()
 
         address = data.get('address')
@@ -345,7 +346,6 @@ class OrderItemsByID(Resource):
 
 class MpesaExpress(Resource):
     def get(self):
-
         response_dict_list = [n.to_dict() for n in Payment.query.all()]
 
         response = make_response(
@@ -355,14 +355,14 @@ class MpesaExpress(Resource):
         return response
     
     def post(self):
-        user_id = session.get('user_id')
         data = request.get_json()
 
         amount= data.get('amount')
         mpesa_number = data.get('mpesa_number')
         status = data.get('status')
+        user_id = data.get('user_id')
 
-        if amount and mpesa_number:
+        if amount and mpesa_number and user_id:
             new_payment = Payment(
                 mpesa_number=mpesa_number,
                 amount=amount,
@@ -376,6 +376,7 @@ class MpesaExpress(Resource):
             return new_payment.to_dict(), 201
         else:
             return {"error": "Payment details not complete"}, 422
+
 
 #         amount = data.get('amount')
 #         phone = data.get(phone)
